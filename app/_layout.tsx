@@ -13,7 +13,13 @@ export default function RootLayout() {
           headerShown: false,
           contentStyle: { backgroundColor: colors.canvas },
         }}
-      />
+      >
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="doctor/[id]"
+          options={{ presentation: "card", animation: "slide_from_right" }}
+        />
+      </Stack>
     </SafeAreaProvider>
   );
 }
