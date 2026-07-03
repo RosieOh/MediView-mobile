@@ -1,4 +1,5 @@
 import { View, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
@@ -18,6 +19,7 @@ const toneByStatus: Record<AppointmentStatus, Tone> = {
 
 export default function Appointments() {
   const { spacing, colors } = useTheme();
+  const router = useRouter();
   const upcoming = appointments.filter((a) => a.status !== "COMPLETED");
   const past = appointments.filter((a) => a.status === "COMPLETED");
 
@@ -43,7 +45,11 @@ export default function Appointments() {
                 <Badge tone={toneByStatus[a.status]} label={statusLabel[a.status]} />
               </View>
               <View style={{ flexDirection: "row", gap: 8, marginTop: spacing.x4 }}>
-                <Button label="진료실 입장" style={{ flex: 1 }} />
+                <Button
+                  label="진료실 입장"
+                  style={{ flex: 1 }}
+                  onPress={() => router.push("/consult/1")}
+                />
                 <Button label="변경" variant="secondary" style={{ flex: 1 }} />
               </View>
             </Card>

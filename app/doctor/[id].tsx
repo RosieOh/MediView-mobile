@@ -129,6 +129,9 @@ export default function DoctorDetail() {
         <Button
           label={picked ? `${picked} 예약하기` : "시간을 선택하세요"}
           full
+          onPress={() => {
+            if (picked) router.push(`/booking/${doctor.id}`);
+          }}
         />
       </View>
     </View>

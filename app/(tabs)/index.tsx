@@ -26,12 +26,14 @@ export default function Home() {
           </Text>
           <Text variant="h2">오늘도 건강하세요</Text>
         </View>
-        <View style={styles.brand}>
-          <Ionicons name="shield-checkmark" size={20} color={colors.brand} />
-          <Text variant="bodyStrong">
-            Medi<Text variant="bodyStrong" color="brand">View</Text>
-          </Text>
-        </View>
+        <Pressable
+          onPress={() => router.push("/notifications")}
+          hitSlop={8}
+          style={styles.bell}
+        >
+          <Ionicons name="notifications-outline" size={24} color={colors.content} />
+          <View style={styles.dot} />
+        </Pressable>
       </View>
 
       {/* 지금 진료받기 CTA */}
@@ -77,7 +79,7 @@ export default function Home() {
               label="진료실 입장"
               full
               style={{ marginTop: spacing.x4 }}
-              onPress={() => router.push("/appointments")}
+              onPress={() => router.push("/consult/1")}
             />
           </Card>
         </View>
@@ -148,7 +150,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  brand: { flexDirection: "row", alignItems: "center", gap: 6 },
+  bell: { padding: 4 },
+  dot: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: palette.accent[500],
+  },
   hero: {
     flexDirection: "row",
     alignItems: "center",

@@ -104,3 +104,97 @@ export const statusLabel: Record<AppointmentStatus, string> = {
   IN_PROGRESS: "진료 중",
   COMPLETED: "완료",
 };
+
+export type NotiType = "appointment" | "payment" | "document" | "system";
+
+export type Notification = {
+  id: string;
+  type: NotiType;
+  title: string;
+  body: string;
+  time: string;
+  read: boolean;
+};
+
+export const notifications: Notification[] = [
+  {
+    id: "n1",
+    type: "appointment",
+    title: "진료가 곧 시작돼요",
+    body: "김서연 의료진과의 진료가 10분 후 시작됩니다.",
+    time: "방금 전",
+    read: false,
+  },
+  {
+    id: "n2",
+    type: "document",
+    title: "처방전이 발급됐어요",
+    body: "급성 상기도 감염 처방전을 서류함에서 확인하세요.",
+    time: "1시간 전",
+    read: false,
+  },
+  {
+    id: "n3",
+    type: "payment",
+    title: "결제가 완료됐어요",
+    body: "내과 진료비 12,000원 결제가 완료되었습니다.",
+    time: "1시간 전",
+    read: true,
+  },
+  {
+    id: "n4",
+    type: "system",
+    title: "본인확인이 완료됐어요",
+    body: "이제 MediView의 모든 기능을 이용할 수 있어요.",
+    time: "어제",
+    read: true,
+  },
+];
+
+export type DocType = "PRESCRIPTION" | "CONFIRMATION" | "OPINION";
+
+export type MedDocument = {
+  id: string;
+  type: DocType;
+  title: string;
+  doctor: string;
+  org: string;
+  issuedAt: string;
+  status: "ISSUED" | "DRAFT";
+};
+
+export const documents: MedDocument[] = [
+  {
+    id: "d1",
+    type: "PRESCRIPTION",
+    title: "처방전 · 급성 상기도 감염",
+    doctor: "김서연",
+    org: "연세미래의원",
+    issuedAt: "오늘 14:52",
+    status: "ISSUED",
+  },
+  {
+    id: "d2",
+    type: "CONFIRMATION",
+    title: "진료확인서",
+    doctor: "정하늘",
+    org: "튼튼아이의원",
+    issuedAt: "6월 28일",
+    status: "ISSUED",
+  },
+  {
+    id: "d3",
+    type: "OPINION",
+    title: "소견서",
+    doctor: "이지우",
+    org: "마음쉼정신건강의학과",
+    issuedAt: "6월 20일",
+    status: "ISSUED",
+  },
+];
+
+export const docTypeLabel: Record<DocType, string> = {
+  PRESCRIPTION: "처방전",
+  CONFIRMATION: "진료확인서",
+  OPINION: "소견서",
+};

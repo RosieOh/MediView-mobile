@@ -1,4 +1,5 @@
 import { View, Pressable, StyleSheet } from "react-native";
+import { useRouter, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
@@ -7,23 +8,29 @@ import { Badge } from "@/components/Badge";
 import { Avatar } from "@/components/Avatar";
 import { useTheme } from "@/theme/theme";
 
-type Row = { icon: keyof typeof Ionicons.glyphMap; label: string; hint?: string };
+type Row = {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  hint?: string;
+  href: Href;
+};
 
 const menu: Row[][] = [
   [
-    { icon: "shield-checkmark-outline", label: "본인확인(KYC)", hint: "완료" },
-    { icon: "card-outline", label: "결제 수단" },
-    { icon: "document-text-outline", label: "진료 기록" },
+    { icon: "shield-checkmark-outline", label: "본인확인(KYC)", hint: "완료", href: "/(auth)/kyc" },
+    { icon: "document-text-outline", label: "서류함", href: "/documents" },
+    { icon: "notifications-outline", label: "알림", href: "/notifications" },
   ],
   [
-    { icon: "notifications-outline", label: "알림 설정" },
-    { icon: "lock-closed-outline", label: "개인정보 · 보안" },
-    { icon: "help-circle-outline", label: "고객센터" },
+    { icon: "settings-outline", label: "설정", href: "/settings" },
+    { icon: "lock-closed-outline", label: "개인정보 · 보안", href: "/settings" },
+    { icon: "help-circle-outline", label: "고객센터", href: "/support" },
   ],
 ];
 
 export default function Profile() {
   const { colors, spacing, radius } = useTheme();
+  const router = useRouter();
 
   return (
     <Screen title="마이">
@@ -54,6 +61,7 @@ export default function Profile() {
           {group.map((row, ri) => (
             <Pressable
               key={row.label}
+              onPress={() => router.push(row.href)}
               style={({ pressed }) => [
                 styles.row,
                 {
@@ -80,7 +88,10 @@ export default function Profile() {
         </View>
       ))}
 
-      <Pressable style={{ marginTop: spacing.x6, alignItems: "center", paddingVertical: 14 }}>
+      <Pressable
+        onPress={() => router.replace("/(auth)/login")}
+        style={{ marginTop: spacing.x6, alignItems: "center", paddingVertical: 14 }}
+      >
         <Text variant="body" color="muted">
           로그아웃
         </Text>
