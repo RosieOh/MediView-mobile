@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "MediView",
+    "slug": "mediview-mobile",
+    "version": "0.1.0",
+    "scheme": "mediview",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#12A3A8",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mediview.app"
+    },
+    "android": {
+      "package": "com.mediview.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#12A3A8"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
