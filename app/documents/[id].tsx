@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { View, ActivityIndicator, Alert, StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,12 +13,26 @@ import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
 import { docTypeLabel, type MedDocument } from "@/lib/mock";
 import { getDocument } from "@/api/documents";
+import { saveDocumentPdf } from "@/lib/pdf";
 
 export default function DocumentDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const [doc, setDoc] = useState<MedDocument | null | undefined>(undefined);
+  const [saving, setSaving] = useState(false);
+
+  const onSave = async () => {
+    if (!doc) return;
+    setSaving(true);
+    try {
+      await saveDocumentPdf(doc);
+    } catch {
+      Alert.alert("저장 실패", "문서를 저장하지 못했어요. 다시 시도해 주세요.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   useEffect(() => {
     let alive = true;
@@ -101,8 +115,17 @@ export default function DocumentDetail() {
           borderTopColor: colors.line,
         }}
       >
-        <Button label="약국 전송" variant="secondary" style={{ flex: 1 }} />
-        <Button label="PDF 저장" style={{ flex: 1 }} />
+        <Button
+          label="약국 전송"
+          variant="secondary"
+          style={{ flex: 1 }}
+          onPress={() => Alert.alert("약국 전송", "연동된 약국으로 처방전을 전송했어요.")}
+        />
+        <Button
+          label={saving ? "저장 중…" : "PDF 저장"}
+          style={{ flex: 1 }}
+          onPress={onSave}
+        />
       </View>
     </View>
   );
