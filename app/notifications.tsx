@@ -1,4 +1,5 @@
-import { View, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
@@ -7,7 +8,8 @@ import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
-import { notifications, type NotiType } from "@/lib/mock";
+import { type Notification, type NotiType } from "@/lib/mock";
+import { listNotifications } from "@/api/notifications";
 
 const iconByType: Record<NotiType, keyof typeof Ionicons.glyphMap> = {
   appointment: "calendar",
@@ -18,12 +20,27 @@ const iconByType: Record<NotiType, keyof typeof Ionicons.glyphMap> = {
 
 export default function Notifications() {
   const { colors, spacing } = useTheme();
+  const [notifications, setNotifications] = useState<Notification[] | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    listNotifications()
+      .then((list) => alive && setNotifications(list))
+      .catch(() => alive && setNotifications([]));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   return (
     <>
       <Header title="알림" />
       <Screen>
-        {notifications.length ? (
+        {notifications === null ? (
+          <View style={{ paddingVertical: 48, alignItems: "center" }}>
+            <ActivityIndicator color={colors.brand} />
+          </View>
+        ) : notifications.length ? (
           <View style={{ gap: spacing.x2 }}>
             {notifications.map((n) => (
               <Card

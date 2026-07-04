@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View, Pressable, StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/Screen";
@@ -9,6 +9,9 @@ import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
+import { payForAppointment } from "@/api/payments";
+
+const AMOUNT = 12000;
 
 const methods = [
   { key: "card", label: "신용/체크카드", icon: "card-outline" },
@@ -17,20 +20,28 @@ const methods = [
 ] as const;
 
 export default function Payment() {
+  const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, spacing, radius } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [method, setMethod] = useState<string>("card");
   const [paying, setPaying] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const pay = () => {
+  const pay = async () => {
+    setError(null);
     setPaying(true);
-    // 데모: 실제로는 PG 결제 → POST /api/payments/confirm (서버 검증)
-    setTimeout(() => {
+    try {
+      // prepare → PG 결제 → confirm(서버 검증). 데모 모드면 시뮬레이션.
+      const res = await payForAppointment(Number(id) || 1, AMOUNT, method);
+      if (res.status === "PAID") setDone(true);
+      else setError("결제가 완료되지 않았습니다. 다시 시도해 주세요.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "결제에 실패했습니다.");
+    } finally {
       setPaying(false);
-      setDone(true);
-    }, 900);
+    }
   };
 
   if (done) {
@@ -147,6 +158,11 @@ export default function Payment() {
           borderTopColor: colors.line,
         }}
       >
+        {error ? (
+          <Text variant="small" center style={{ color: colors.accent, marginBottom: 10 }}>
+            {error}
+          </Text>
+        ) : null}
         <Button label={paying ? "결제 중…" : "12,000원 결제하기"} full onPress={pay} />
       </View>
     </View>

@@ -73,3 +73,21 @@ export type NotificationDto = {
   isRead: boolean;
   createdAt?: string;
 };
+
+export type PaymentMethodApi = "CARD" | "TRANSFER" | "VIRTUAL_ACCOUNT";
+export type PaymentStatusApi =
+  | "PENDING"
+  | "PAID"
+  | "PARTIALLY_REFUNDED"
+  | "REFUNDED"
+  | "FAILED";
+
+export type PaymentResponse = {
+  id: number;
+  appointmentId: number;
+  amount: number;
+  status: PaymentStatusApi;
+  method: PaymentMethodApi;
+  pgTxId?: string;
+  paidAt?: string;
+};
