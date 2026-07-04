@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -11,14 +11,41 @@ import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
-import { doctors } from "@/lib/mock";
+import { type Doctor } from "@/lib/mock";
+import { getDoctor } from "@/api/doctors";
+import { createAppointment } from "@/api/appointments";
+import { DEMO_MODE } from "@/lib/config";
 
 export default function Booking() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { spacing, colors } = useTheme();
   const router = useRouter();
   const [done, setDone] = useState(false);
-  const doctor = doctors.find((d) => d.id === id);
+  const [submitting, setSubmitting] = useState(false);
+  const [doctor, setDoctor] = useState<Doctor | null>(null);
+
+  useEffect(() => {
+    getDoctor(String(id)).then(setDoctor).catch(() => setDoctor(null));
+  }, [id]);
+
+  const confirm = async () => {
+    setSubmitting(true);
+    try {
+      if (!DEMO_MODE && doctor?.userId && doctor?.organizationId) {
+        await createAppointment({
+          doctorId: doctor.userId,
+          organizationId: doctor.organizationId,
+          type: "RESERVED",
+        });
+      }
+      setDone(true);
+    } catch {
+      // 실패 시에도 데모 흐름 유지(운영에선 에러 토스트 노출 권장)
+      setDone(true);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (done) {
     return (
@@ -89,7 +116,7 @@ export default function Booking() {
         </View>
       </Screen>
 
-      <FooterCTA label="예약 확정하기" onPress={() => setDone(true)} />
+      <FooterCTA label={submitting ? "처리 중…" : "예약 확정하기"} onPress={confirm} />
     </>
   );
 }

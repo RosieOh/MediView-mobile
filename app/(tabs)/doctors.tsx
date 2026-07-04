@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { View, TextInput, Pressable, StyleSheet, ScrollView } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { View, TextInput, Pressable, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
 import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/Screen";
@@ -8,7 +8,8 @@ import { Card } from "@/components/Card";
 import { Avatar } from "@/components/Avatar";
 import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
-import { doctors } from "@/lib/mock";
+import { type Doctor } from "@/lib/mock";
+import { listDoctors } from "@/api/doctors";
 
 const specialties = ["전체", "내과", "피부과", "정신건강의학과", "소아청소년과"];
 
@@ -16,15 +17,26 @@ export default function Doctors() {
   const { colors, radius, spacing } = useTheme();
   const [q, setQ] = useState("");
   const [spec, setSpec] = useState("전체");
+  const [items, setItems] = useState<Doctor[] | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    listDoctors()
+      .then((list) => alive && setItems(list))
+      .catch(() => alive && setItems([]));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const filtered = useMemo(
     () =>
-      doctors.filter(
+      (items ?? []).filter(
         (d) =>
           (spec === "전체" || d.specialty === spec) &&
           (q === "" || d.name.includes(q) || d.org.includes(q))
       ),
-    [q, spec]
+    [items, q, spec]
   );
 
   return (
@@ -79,6 +91,11 @@ export default function Doctors() {
       </ScrollView>
 
       {/* 목록 */}
+      {items === null ? (
+        <View style={{ paddingVertical: 48, alignItems: "center" }}>
+          <ActivityIndicator color={colors.brand} />
+        </View>
+      ) : null}
       <View style={{ gap: spacing.x3 }}>
         {filtered.map((d) => (
           <Link key={d.id} href={`/doctor/${d.id}`} asChild>
@@ -119,7 +136,7 @@ export default function Doctors() {
             </Pressable>
           </Link>
         ))}
-        {filtered.length === 0 ? (
+        {items !== null && filtered.length === 0 ? (
           <Text variant="body" color="muted" center style={{ paddingVertical: 40 }}>
             조건에 맞는 의료진이 없어요.
           </Text>

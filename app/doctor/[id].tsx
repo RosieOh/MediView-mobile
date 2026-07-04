@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { View, Pressable, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { View, Pressable, StyleSheet, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,7 +11,8 @@ import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
-import { doctors } from "@/lib/mock";
+import { type Doctor } from "@/lib/mock";
+import { getDoctor } from "@/api/doctors";
 
 const slots = ["오늘 14:30", "오늘 15:15", "오늘 16:00", "내일 10:00", "내일 11:30"];
 
@@ -21,8 +22,25 @@ export default function DoctorDetail() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [picked, setPicked] = useState<string | null>(null);
+  const [doctor, setDoctor] = useState<Doctor | null | undefined>(undefined);
 
-  const doctor = doctors.find((d) => d.id === id);
+  useEffect(() => {
+    let alive = true;
+    getDoctor(String(id))
+      .then((d) => alive && setDoctor(d))
+      .catch(() => alive && setDoctor(null));
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+
+  if (doctor === undefined) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.canvas, justifyContent: "center" }}>
+        <ActivityIndicator color={colors.brand} />
+      </View>
+    );
+  }
 
   if (!doctor) {
     return (

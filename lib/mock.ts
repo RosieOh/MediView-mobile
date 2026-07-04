@@ -10,6 +10,9 @@ export type Doctor = {
   reviews: number;
   nextSlot: string;
   about: string;
+  /** 백엔드 연동 시 예약 생성에 필요한 식별자(데모에선 없음) */
+  userId?: number;
+  organizationId?: number;
 };
 
 export const doctors: Doctor[] = [
