@@ -1,4 +1,5 @@
-import { View, Pressable, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { View, Pressable, ActivityIndicator, StyleSheet } from "react-native";
 import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Header } from "@/components/Header";
@@ -9,7 +10,8 @@ import { Badge } from "@/components/Badge";
 import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
-import { documents, docTypeLabel, type DocType } from "@/lib/mock";
+import { docTypeLabel, type DocType, type MedDocument } from "@/lib/mock";
+import { listDocuments } from "@/api/documents";
 
 const iconByType: Record<DocType, keyof typeof Ionicons.glyphMap> = {
   PRESCRIPTION: "medkit",
@@ -19,12 +21,27 @@ const iconByType: Record<DocType, keyof typeof Ionicons.glyphMap> = {
 
 export default function Documents() {
   const { colors, spacing } = useTheme();
+  const [documents, setDocuments] = useState<MedDocument[] | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    listDocuments()
+      .then((list) => alive && setDocuments(list))
+      .catch(() => alive && setDocuments([]));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   return (
     <>
       <Header title="서류함" />
       <Screen>
-        {documents.length ? (
+        {documents === null ? (
+          <View style={{ paddingVertical: 48, alignItems: "center" }}>
+            <ActivityIndicator color={colors.brand} />
+          </View>
+        ) : documents.length ? (
           <View style={{ gap: spacing.x2 }}>
             {documents.map((d) => (
               <Link key={d.id} href={`/documents/${d.id}`} asChild>

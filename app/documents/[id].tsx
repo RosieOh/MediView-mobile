@@ -1,4 +1,5 @@
-import { View, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,13 +11,32 @@ import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
-import { documents, docTypeLabel } from "@/lib/mock";
+import { docTypeLabel, type MedDocument } from "@/lib/mock";
+import { getDocument } from "@/api/documents";
 
 export default function DocumentDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, spacing } = useTheme();
   const insets = useSafeAreaInsets();
-  const doc = documents.find((d) => d.id === id);
+  const [doc, setDoc] = useState<MedDocument | null | undefined>(undefined);
+
+  useEffect(() => {
+    let alive = true;
+    getDocument(String(id))
+      .then((d) => alive && setDoc(d))
+      .catch(() => alive && setDoc(null));
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+
+  if (doc === undefined) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.canvas, justifyContent: "center" }}>
+        <ActivityIndicator color={colors.brand} />
+      </View>
+    );
+  }
 
   if (!doc) {
     return (
