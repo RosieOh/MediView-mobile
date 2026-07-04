@@ -21,3 +21,6 @@ export const DEMO_MODE =
   process.env.EXPO_PUBLIC_DEMO_MODE != null
     ? process.env.EXPO_PUBLIC_DEMO_MODE === "true"
     : extra.demoMode ?? true;
+
+/** WebSocket 기본 URL (http→ws, https→wss). */
+export const WS_URL = API_URL.replace(/^http/, "ws");

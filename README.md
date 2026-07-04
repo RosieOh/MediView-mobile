@@ -50,6 +50,28 @@ app/
 - `context/AuthContext.tsx` — 부팅 시 세션 복원, `login`/`signup`/`logout`
 - `api/*` — auth · appointments · kyc (데모/실서버 자동 분기, 네트워크 실패 시 목 폴백)
 
+## 화상 진료 (WebRTC)
+
+실제 영상 진료는 `react-native-webrtc`(네이티브 모듈)로 구현되어 있고, 백엔드 시그널링
+(`/ws/webrtc/{roomId}`, JWT 티켓)에 연결됩니다.
+
+- **네이티브 개발 빌드**에서 동작합니다. `react-native-webrtc` 는 Expo Go 에 링크되어 있지 않으므로,
+  **Expo Go/웹에서는 자동으로 미리보기(목) 화면**으로 폴백됩니다(앱은 깨지지 않음).
+- 구성: `lib/webrtc/*`(플랫폼별 구현 + 시그널링), `components/VideoConsult.tsx`, `api/ws.ts`(티켓).
+
+**실제 영상으로 실행하려면(개발 빌드 필요)**
+```bash
+# 1) 개발 빌드 생성 (EAS 또는 로컬)
+npx expo install expo-dev-client   # 이미 포함
+eas build --profile development --platform ios   # 또는 android
+#   (로컬: npx expo run:ios / run:android — Xcode/Android SDK 필요)
+
+# 2) 개발 빌드 앱에서 dev 서버 접속
+npx expo start --dev-client
+```
+> 카메라/마이크 권한은 `app.json`(ios.infoPlist / android.permissions)에 설정되어 있습니다.
+> 2인 통화 규약: 먼저 방에 있던 쪽이 상대 입장 시 offer 를 생성합니다.
+
 ## 디자인 원칙
 - 모든 색/타이포/간격은 `useTheme()` 를 통해서만 사용(하드코딩 금지).
 - 터치 타깃 ≥ 44pt, 하단 안전영역(`useSafeAreaInsets`) 존중.

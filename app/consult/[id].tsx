@@ -7,6 +7,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/Text";
 import { palette } from "@/theme/tokens";
 import { doctors } from "@/lib/mock";
+import { WEBRTC_AVAILABLE } from "@/lib/webrtc";
+import { VideoConsult } from "@/components/VideoConsult";
 
 export default function Consult() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,9 +27,28 @@ export default function Consult() {
   const mm = String(Math.floor(sec / 60)).padStart(2, "0");
   const ss = String(sec % 60).padStart(2, "0");
 
+  // 네이티브 개발 빌드에서 react-native-webrtc 가 링크된 경우 실제 영상 진료를 사용한다.
+  if (WEBRTC_AVAILABLE) {
+    return (
+      <VideoConsult
+        sessionId={String(id)}
+        doctorName={doctor.name}
+        onEnd={() => router.replace(`/summary/${id}`)}
+      />
+    );
+  }
+
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
+
+      {/* 미리보기 안내(Expo Go/웹) */}
+      <View style={[styles.previewBanner, { top: insets.top + 52 }]}>
+        <Ionicons name="information-circle" size={14} color="#fff" />
+        <Text variant="caption" style={{ color: "rgba(255,255,255,0.9)" }}>
+          미리보기 · 실제 영상은 개발 빌드에서 동작
+        </Text>
+      </View>
 
       {/* 원격 영상 영역(플레이스홀더) */}
       <View style={styles.remote}>
@@ -116,6 +137,18 @@ function Ctrl({
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#0B1418" },
+  previewBanner: {
+    position: "absolute",
+    alignSelf: "center",
+    zIndex: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
   remote: { flex: 1, alignItems: "center", justifyContent: "center" },
   remoteAvatar: {
     width: 120,
