@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
-import { Stack } from "expo-router";
+import { useEffect } from "react";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { useTheme } from "@/theme/theme";
 import { Loading } from "@/components/Loading";
 import { ErrorScreen } from "@/components/ErrorScreen";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -20,9 +21,7 @@ export function ErrorBoundary({
   return (
     <SafeAreaProvider>
       <ErrorScreen
-        message={
-          __DEV__ ? error.message : "잠시 후 다시 시도해 주세요."
-        }
+        message={__DEV__ ? error.message : "잠시 후 다시 시도해 주세요."}
         onRetry={() => retry()}
       />
     </SafeAreaProvider>
@@ -30,29 +29,45 @@ export function ErrorBoundary({
 }
 
 export default function RootLayout() {
+  return (
+    <SafeAreaProvider>
+      <AuthProvider>
+        <RootNavigator />
+      </AuthProvider>
+    </SafeAreaProvider>
+  );
+}
+
+function RootNavigator() {
+  const { status } = useAuth();
   const { colors, isDark } = useTheme();
-  const [ready, setReady] = useState(false);
+  const segments = useSegments();
+  const router = useRouter();
 
+  // 미인증 사용자가 보호 화면에 접근하면 온보딩으로. (완료 후 tabs 이동은 각 화면이 명시적으로 처리)
   useEffect(() => {
-    // 실제 앱에서는 여기서 토큰 복원·폰트 로드·세션 확인 등을 수행한다.
-    const t = setTimeout(async () => {
-      setReady(true);
-      await SplashScreen.hideAsync().catch(() => {});
-    }, 1100);
-    return () => clearTimeout(t);
-  }, []);
+    if (status === "loading") return;
+    SplashScreen.hideAsync().catch(() => {});
 
-  if (!ready) {
+    const root = segments[0];
+    const inAuthFlow = root === "(auth)" || root === "onboarding";
+
+    if (status === "unauthenticated" && !inAuthFlow) {
+      router.replace("/onboarding");
+    }
+  }, [status, segments, router]);
+
+  if (status === "loading") {
     return (
-      <SafeAreaProvider>
+      <>
         <StatusBar style="light" />
         <Loading />
-      </SafeAreaProvider>
+      </>
     );
   }
 
   return (
-    <SafeAreaProvider>
+    <>
       <StatusBar style={isDark ? "light" : "dark"} />
       <Stack
         screenOptions={{
@@ -76,6 +91,6 @@ export default function RootLayout() {
         <Stack.Screen name="settings" />
         <Stack.Screen name="support" />
       </Stack>
-    </SafeAreaProvider>
+    </>
   );
 }

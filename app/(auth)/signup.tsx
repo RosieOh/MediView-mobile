@@ -8,17 +8,40 @@ import { Text } from "@/components/Text";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/theme/theme";
+import { useAuth } from "@/context/AuthContext";
+import type { UserRole } from "@/lib/types";
 
-type Role = "PATIENT" | "DOCTOR";
+type Role = Extract<UserRole, "PATIENT" | "DOCTOR">;
 
 export default function Signup() {
   const { spacing, colors, radius } = useTheme();
   const router = useRouter();
+  const { signup } = useAuth();
   const [role, setRole] = useState<Role>("PATIENT");
   const [form, setForm] = useState({ name: "", email: "", pw: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const set = (k: keyof typeof form) => (v: string) =>
     setForm((f) => ({ ...f, [k]: v }));
+
+  const submit = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      await signup({
+        email: form.email.trim(),
+        password: form.pw,
+        name: form.name.trim(),
+        role,
+      });
+      router.push("/(auth)/kyc");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "회원가입에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -90,7 +113,15 @@ export default function Signup() {
             value={form.email}
             onChangeText={set("email")}
           />
-          <Input label="비밀번호" icon="lock-closed-outline" placeholder="8자 이상" secure value={form.pw} onChangeText={set("pw")} />
+          <Input
+            label="비밀번호"
+            icon="lock-closed-outline"
+            placeholder="8자 이상"
+            secure
+            value={form.pw}
+            onChangeText={set("pw")}
+            error={error ?? undefined}
+          />
         </View>
 
         <Text variant="caption" color="subtle" style={{ marginTop: spacing.x4, lineHeight: 18 }}>
@@ -99,9 +130,9 @@ export default function Signup() {
         </Text>
 
         <Button
-          label="다음: 본인확인"
+          label={loading ? "가입 중…" : "다음: 본인확인"}
           full
-          onPress={() => router.push("/(auth)/kyc")}
+          onPress={submit}
           style={{ marginTop: spacing.x5 }}
         />
 

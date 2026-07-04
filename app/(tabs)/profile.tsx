@@ -7,6 +7,7 @@ import { Card } from "@/components/Card";
 import { Badge } from "@/components/Badge";
 import { Avatar } from "@/components/Avatar";
 import { useTheme } from "@/theme/theme";
+import { useAuth } from "@/context/AuthContext";
 
 type Row = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -31,16 +32,22 @@ const menu: Row[][] = [
 export default function Profile() {
   const { colors, spacing, radius } = useTheme();
   const router = useRouter();
+  const { user, logout } = useAuth();
+
+  const doLogout = async () => {
+    await logout();
+    router.replace("/(auth)/login");
+  };
 
   return (
     <Screen title="마이">
       {/* 프로필 카드 */}
       <Card style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-        <Avatar name="박" size={56} />
+        <Avatar name={user?.name ?? "사용자"} size={56} />
         <View style={{ flex: 1 }}>
-          <Text variant="h3">박민수</Text>
+          <Text variant="h3">{user?.name ?? "사용자"}</Text>
           <Text variant="small" color="muted">
-            minsu@example.com
+            {user?.email ?? ""}
           </Text>
         </View>
         <Badge tone="success" label="본인확인 완료" />
@@ -89,7 +96,7 @@ export default function Profile() {
       ))}
 
       <Pressable
-        onPress={() => router.replace("/(auth)/login")}
+        onPress={doLogout}
         style={{ marginTop: spacing.x6, alignItems: "center", paddingVertical: 14 }}
       >
         <Text variant="body" color="muted">

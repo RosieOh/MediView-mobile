@@ -1,4 +1,5 @@
-import { View, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/Screen";
@@ -8,20 +9,45 @@ import { Badge, type Tone } from "@/components/Badge";
 import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/theme/theme";
-import { appointments, statusLabel, type AppointmentStatus } from "@/lib/mock";
+import { statusLabel, type AppointmentStatus } from "@/lib/mock";
+import { listMyAppointments, type AppointmentView } from "@/api/appointments";
 
-const toneByStatus: Record<AppointmentStatus, Tone> = {
+const toneByStatus: Record<string, Tone> = {
   SCHEDULED: "brand",
   WAITING: "warning",
   IN_PROGRESS: "success",
   COMPLETED: "neutral",
+  CANCELLED: "danger",
+  NO_SHOW: "danger",
 };
 
 export default function Appointments() {
   const { spacing, colors } = useTheme();
   const router = useRouter();
-  const upcoming = appointments.filter((a) => a.status !== "COMPLETED");
-  const past = appointments.filter((a) => a.status === "COMPLETED");
+  const [items, setItems] = useState<AppointmentView[] | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    listMyAppointments()
+      .then((list) => alive && setItems(list))
+      .catch(() => alive && setItems([]));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (items === null) {
+    return (
+      <Screen title="예약">
+        <View style={{ paddingVertical: 60, alignItems: "center" }}>
+          <ActivityIndicator color={colors.brand} />
+        </View>
+      </Screen>
+    );
+  }
+
+  const upcoming = items.filter((a) => a.status !== "COMPLETED");
+  const past = items.filter((a) => a.status === "COMPLETED");
 
   return (
     <Screen title="예약">
@@ -34,15 +60,18 @@ export default function Appointments() {
             <Card key={a.id}>
               <View style={styles.rowBetween}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                  <Avatar name={a.doctor} />
+                  <Avatar name={a.doctorLabel} />
                   <View>
-                    <Text variant="bodyStrong">{a.doctor} 의료진</Text>
+                    <Text variant="bodyStrong">{a.doctorLabel}</Text>
                     <Text variant="small" color="muted">
-                      {a.specialty} · {a.when}
+                      {a.when}
                     </Text>
                   </View>
                 </View>
-                <Badge tone={toneByStatus[a.status]} label={statusLabel[a.status]} />
+                <Badge
+                  tone={toneByStatus[a.status] ?? "neutral"}
+                  label={statusLabel[a.status as AppointmentStatus] ?? a.status}
+                />
               </View>
               <View style={{ flexDirection: "row", gap: 8, marginTop: spacing.x4 }}>
                 <Button
@@ -56,7 +85,7 @@ export default function Appointments() {
           ))}
         </View>
       ) : (
-        <EmptyState />
+        <EmptyCard />
       )}
 
       <Text variant="h3" style={{ marginTop: spacing.x8, marginBottom: spacing.x3 }}>
@@ -67,11 +96,11 @@ export default function Appointments() {
           <Card key={a.id}>
             <View style={styles.rowBetween}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                <Avatar name={a.doctor} />
+                <Avatar name={a.doctorLabel} />
                 <View>
-                  <Text variant="bodyStrong">{a.doctor} 의료진</Text>
+                  <Text variant="bodyStrong">{a.doctorLabel}</Text>
                   <Text variant="small" color="muted">
-                    {a.specialty} · {a.when}
+                    {a.when}
                   </Text>
                 </View>
               </View>
@@ -84,7 +113,7 @@ export default function Appointments() {
   );
 }
 
-function EmptyState() {
+function EmptyCard() {
   const { colors } = useTheme();
   return (
     <Card style={{ alignItems: "center", paddingVertical: 32, gap: 8 }}>

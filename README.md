@@ -30,6 +30,26 @@ app/
   index.tsx   # 홈 — 히어로 · 신뢰칩 · 진료 프리뷰 · 요약 · CTA
 ```
 
+## 백엔드 연동
+
+`lib/config.ts` 가 API 주소와 데모 모드를 관리합니다. 기본은 **데모 모드**(백엔드 없이 목 데이터로 동작).
+
+| 설정 | 위치 | 설명 |
+|---|---|---|
+| `apiUrl` | `app.json > expo.extra.apiUrl` 또는 `EXPO_PUBLIC_API_URL` | 백엔드 주소. 실기기(Expo Go)는 `localhost` 대신 **개발 PC의 LAN IP** 사용 |
+| `demoMode` | `app.json > expo.extra.demoMode` 또는 `EXPO_PUBLIC_DEMO_MODE` | `false` 로 두면 실제 API 호출 |
+
+**실제 백엔드에 붙이기**
+1. Spring 서버 실행(`JWT_SECRET`·`APP_ENCRYPTION_KEY` 주입, MariaDB 필요).
+2. `app.json` 의 `extra.demoMode` 를 `false`, `extra.apiUrl` 을 서버 주소로.
+3. 앱 재시작.
+
+연동 레이어
+- `lib/api.ts` — `ApiResponse<T>` 봉투 언랩 + **401 시 refresh 토큰 자동 재발급/재시도**
+- `lib/storage.ts` — 토큰 보관(네이티브 SecureStore / 웹 localStorage)
+- `context/AuthContext.tsx` — 부팅 시 세션 복원, `login`/`signup`/`logout`
+- `api/*` — auth · appointments · kyc (데모/실서버 자동 분기, 네트워크 실패 시 목 폴백)
+
 ## 디자인 원칙
 - 모든 색/타이포/간격은 `useTheme()` 를 통해서만 사용(하드코딩 금지).
 - 터치 타깃 ≥ 44pt, 하단 안전영역(`useSafeAreaInsets`) 존중.

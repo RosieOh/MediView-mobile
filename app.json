@@ -28,10 +28,15 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-asset"
+      "expo-asset",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": false
+    },
+    "extra": {
+      "apiUrl": "http://localhost:8080",
+      "demoMode": true
     }
   }
 }

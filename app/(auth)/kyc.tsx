@@ -10,6 +10,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
+import { requestKyc, verifyKyc } from "@/api/kyc";
 
 type Step = "phone" | "code" | "done";
 
@@ -19,6 +20,38 @@ export default function Kyc() {
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
+  const [requestId, setRequestId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const sendCode = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await requestKyc("SMS", { phone });
+      setRequestId(res.requestId);
+      setStep("code");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "인증 요청에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirm = async () => {
+    if (!requestId) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await verifyKyc(requestId, code);
+      if (res.status === "VERIFIED") setStep("done");
+      else setError("인증에 실패했습니다. 코드를 확인해 주세요.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "인증에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -53,11 +86,12 @@ export default function Kyc() {
               keyboardType="phone-pad"
               value={phone}
               onChangeText={setPhone}
+              error={error ?? undefined}
             />
             <Button
-              label="인증번호 받기"
+              label={loading ? "요청 중…" : "인증번호 받기"}
               full
-              onPress={() => setStep("code")}
+              onPress={sendCode}
               style={{ marginTop: spacing.x6 }}
             />
           </>
@@ -77,16 +111,17 @@ export default function Kyc() {
               maxLength={6}
               value={code}
               onChangeText={setCode}
+              error={error ?? undefined}
             />
-            <Pressable style={{ alignSelf: "flex-start", marginTop: 10 }}>
+            <Pressable onPress={sendCode} style={{ alignSelf: "flex-start", marginTop: 10 }}>
               <Text variant="small" color="brandInk">
                 인증번호 재전송
               </Text>
             </Pressable>
             <Button
-              label="확인"
+              label={loading ? "확인 중…" : "확인"}
               full
-              onPress={() => setStep("done")}
+              onPress={confirm}
               style={{ marginTop: spacing.x6 }}
             />
           </>

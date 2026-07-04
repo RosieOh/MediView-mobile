@@ -7,21 +7,28 @@ import { Text } from "@/components/Text";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/theme/theme";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
   const { spacing } = useTheme();
   const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = () => {
+  const submit = async () => {
+    setError(null);
     setLoading(true);
-    // 데모: 실제로는 POST /api/auth/login → 토큰 저장
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await login(email.trim(), pw);
       router.replace("/(tabs)");
-    }, 700);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "로그인에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,6 +62,7 @@ export default function Login() {
             secure
             value={pw}
             onChangeText={setPw}
+            error={error ?? undefined}
           />
           <Pressable style={{ alignSelf: "flex-end" }}>
             <Text variant="small" color="brandInk">
