@@ -9,6 +9,7 @@ import {
 import { getAccessToken } from "@/lib/api";
 import { getItem, KEYS } from "@/lib/storage";
 import * as authApi from "@/api/auth";
+import { updateMe, type ProfileUpdate } from "@/api/users";
 import type { SignupPayload, UserProfile } from "@/lib/types";
 
 type Status = "loading" | "authenticated" | "unauthenticated";
@@ -19,6 +20,7 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>;
   signup: (payload: SignupPayload) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (payload: ProfileUpdate) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -70,6 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await authApi.logout(refresh ?? undefined);
         setUser(null);
         setStatus("unauthenticated");
+      },
+      updateProfile: async (payload) => {
+        await updateMe(payload);
+        setUser((prev) => (prev ? { ...prev, ...payload } : prev));
       },
     }),
     [status, user]

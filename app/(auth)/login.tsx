@@ -64,7 +64,10 @@ export default function Login() {
             onChangeText={setPw}
             error={error ?? undefined}
           />
-          <Pressable style={{ alignSelf: "flex-end" }}>
+          <Pressable
+            style={{ alignSelf: "flex-end" }}
+            onPress={() => router.push("/(auth)/forgot")}
+          >
             <Text variant="small" color="brandInk">
               비밀번호를 잊으셨나요?
             </Text>

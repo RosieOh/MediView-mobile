@@ -90,6 +90,11 @@ function RootNavigator() {
         <Stack.Screen name="documents/[id]" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="support" />
+        <Stack.Screen name="profile-edit" />
+        <Stack.Screen name="payment-methods" />
+        <Stack.Screen name="appointment/[id]" />
+        <Stack.Screen name="chat/[id]" />
+        <Stack.Screen name="legal/[type]" />
       </Stack>
     </>
   );

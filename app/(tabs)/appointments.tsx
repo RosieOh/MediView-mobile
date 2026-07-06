@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Pressable, ActivityIndicator, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/Screen";
@@ -57,7 +57,8 @@ export default function Appointments() {
       {upcoming.length ? (
         <View style={{ gap: spacing.x3 }}>
           {upcoming.map((a) => (
-            <Card key={a.id}>
+            <Pressable key={a.id} onPress={() => router.push(`/appointment/${a.id}`)}>
+            <Card>
               <View style={styles.rowBetween}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                   <Avatar name={a.doctorLabel} />
@@ -82,6 +83,7 @@ export default function Appointments() {
                 <Button label="변경" variant="secondary" style={{ flex: 1 }} />
               </View>
             </Card>
+            </Pressable>
           ))}
         </View>
       ) : (
@@ -93,7 +95,8 @@ export default function Appointments() {
       </Text>
       <View style={{ gap: spacing.x3 }}>
         {past.map((a) => (
-          <Card key={a.id}>
+          <Pressable key={a.id} onPress={() => router.push(`/appointment/${a.id}`)}>
+          <Card>
             <View style={styles.rowBetween}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                 <Avatar name={a.doctorLabel} />
@@ -107,6 +110,7 @@ export default function Appointments() {
               <Ionicons name="document-text-outline" size={22} color={colors.subtle} />
             </View>
           </Card>
+          </Pressable>
         ))}
       </View>
     </Screen>

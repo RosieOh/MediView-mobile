@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { Card } from "@/components/Card";
-import { Badge } from "@/components/Badge";
 import { Avatar } from "@/components/Avatar";
 import { useTheme } from "@/theme/theme";
 import { useAuth } from "@/context/AuthContext";
@@ -19,6 +18,7 @@ type Row = {
 const menu: Row[][] = [
   [
     { icon: "shield-checkmark-outline", label: "본인확인(KYC)", hint: "완료", href: "/(auth)/kyc" },
+    { icon: "card-outline", label: "결제 수단", href: "/payment-methods" },
     { icon: "document-text-outline", label: "서류함", href: "/documents" },
     { icon: "notifications-outline", label: "알림", href: "/notifications" },
   ],
@@ -42,16 +42,18 @@ export default function Profile() {
   return (
     <Screen title="마이">
       {/* 프로필 카드 */}
-      <Card style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-        <Avatar name={user?.name ?? "사용자"} size={56} />
-        <View style={{ flex: 1 }}>
-          <Text variant="h3">{user?.name ?? "사용자"}</Text>
-          <Text variant="small" color="muted">
-            {user?.email ?? ""}
-          </Text>
-        </View>
-        <Badge tone="success" label="본인확인 완료" />
-      </Card>
+      <Pressable onPress={() => router.push("/profile-edit")}>
+        <Card style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
+          <Avatar name={user?.name ?? "사용자"} size={56} />
+          <View style={{ flex: 1 }}>
+            <Text variant="h3">{user?.name ?? "사용자"}</Text>
+            <Text variant="small" color="muted">
+              {user?.email ?? ""}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.subtle} />
+        </Card>
+      </Pressable>
 
       {menu.map((group, gi) => (
         <View

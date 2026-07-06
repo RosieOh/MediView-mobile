@@ -125,8 +125,15 @@ export default function Signup() {
         </View>
 
         <Text variant="caption" color="subtle" style={{ marginTop: spacing.x4, lineHeight: 18 }}>
-          가입 시 이용약관 및 개인정보처리방침에 동의하게 됩니다. 다음 단계에서
-          휴대폰 본인확인을 진행합니다.
+          가입 시{" "}
+          <Text variant="caption" color="brandInk" onPress={() => router.push("/legal/terms")}>
+            이용약관
+          </Text>{" "}
+          및{" "}
+          <Text variant="caption" color="brandInk" onPress={() => router.push("/legal/privacy")}>
+            개인정보처리방침
+          </Text>
+          에 동의하게 됩니다. 다음 단계에서 휴대폰 본인확인을 진행합니다.
         </Text>
 
         <Button
