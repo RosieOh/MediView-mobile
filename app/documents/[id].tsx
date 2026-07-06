@@ -13,7 +13,8 @@ import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
 import { docTypeLabel, type MedDocument } from "@/lib/mock";
 import { getDocument } from "@/api/documents";
-import { saveDocumentPdf } from "@/lib/pdf";
+import { saveDocumentPdf, downloadServerDocumentPdf } from "@/lib/pdf";
+import { DEMO_MODE } from "@/lib/config";
 
 export default function DocumentDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,9 +27,18 @@ export default function DocumentDetail() {
     if (!doc) return;
     setSaving(true);
     try {
-      await saveDocumentPdf(doc);
-    } catch {
-      Alert.alert("저장 실패", "문서를 저장하지 못했어요. 다시 시도해 주세요.");
+      // 데모/오프라인은 클라이언트 렌더링, 실서버는 서식 기반 정식 PDF 를 내려받는다.
+      if (DEMO_MODE) {
+        await saveDocumentPdf(doc);
+      } else {
+        const fileName = `MediView_${doc.type.toLowerCase()}_${doc.id}.pdf`;
+        await downloadServerDocumentPdf(doc.id, fileName);
+      }
+    } catch (e) {
+      Alert.alert(
+        "저장 실패",
+        e instanceof Error ? e.message : "문서를 저장하지 못했어요. 다시 시도해 주세요.",
+      );
     } finally {
       setSaving(false);
     }

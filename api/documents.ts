@@ -5,7 +5,7 @@ import { documents as mockDocs, type MedDocument, type DocType } from "@/lib/moc
 /** 백엔드 MyDocumentResponse */
 type MyDoc = {
   id: number;
-  type: "SUMMARY" | "CONFIRMATION" | "OPINION";
+  type: "SUMMARY" | "CONFIRMATION" | "OPINION" | "PRESCRIPTION" | "MEDICAL_RECORD";
   status: "DRAFT" | "APPROVED" | "ISSUED";
   doctorName?: string;
   organizationName?: string;
@@ -16,11 +16,15 @@ const typeMap: Record<MyDoc["type"], DocType> = {
   SUMMARY: "CONFIRMATION",
   CONFIRMATION: "CONFIRMATION",
   OPINION: "OPINION",
+  PRESCRIPTION: "PRESCRIPTION",
+  MEDICAL_RECORD: "CONFIRMATION",
 };
 const titleMap: Record<MyDoc["type"], string> = {
   SUMMARY: "방문요약",
   CONFIRMATION: "진료확인서",
   OPINION: "소견서",
+  PRESCRIPTION: "처방전",
+  MEDICAL_RECORD: "진료내역서",
 };
 
 function toDoc(d: MyDoc): MedDocument {

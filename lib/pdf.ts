@@ -1,6 +1,9 @@
 import { Platform } from "react-native";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system";
+import { API_URL } from "@/lib/config";
+import { getAccessToken } from "@/lib/api";
 import type { MedDocument } from "@/lib/mock";
 
 /** 전자문서를 브랜드 서식의 HTML 로 렌더링. */
@@ -47,7 +50,7 @@ function documentHtml(doc: MedDocument): string {
   </html>`;
 }
 
-/** 문서를 PDF 로 만들어 저장/공유한다. (웹은 인쇄 대화상자) */
+/** 문서를 PDF 로 만들어 저장/공유한다. (웹은 인쇄 대화상자) — 데모/오프라인용 클라이언트 렌더링. */
 export async function saveDocumentPdf(doc: MedDocument): Promise<void> {
   const html = documentHtml(doc);
   if (Platform.OS === "web") {
@@ -59,6 +62,45 @@ export async function saveDocumentPdf(doc: MedDocument): Promise<void> {
     await Sharing.shareAsync(uri, {
       mimeType: "application/pdf",
       dialogTitle: `${doc.title} 저장/공유`,
+      UTI: "com.adobe.pdf",
+    });
+  }
+}
+
+/**
+ * 백엔드가 서식(Thymeleaf) 기반으로 발급한 정식 PDF 를 내려받아 저장/공유한다.
+ * 처방전·진료내역서는 서버 발급본이 정본이므로 이 경로를 사용한다.
+ */
+export async function downloadServerDocumentPdf(
+  documentId: string,
+  fileName: string,
+): Promise<void> {
+  const token = await getAccessToken();
+  const url = `${API_URL}/api/documents/${documentId}/pdf`;
+  const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+
+  if (Platform.OS === "web") {
+    const res = await fetch(url, { headers });
+    if (!res.ok) throw new Error(`다운로드 실패 (${res.status})`);
+    const blob = await res.blob();
+    const g = globalThis as unknown as {
+      URL: { createObjectURL(b: Blob): string; revokeObjectURL(u: string): void };
+      open(u: string, t?: string): unknown;
+    };
+    const objectUrl = g.URL.createObjectURL(blob);
+    g.open(objectUrl, "_blank");
+    setTimeout(() => g.URL.revokeObjectURL(objectUrl), 60_000);
+    return;
+  }
+
+  const target = `${FileSystem.cacheDirectory ?? ""}${fileName}`;
+  const { status } = await FileSystem.downloadAsync(url, target, { headers });
+  if (status !== 200) throw new Error(`다운로드 실패 (${status})`);
+
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(target, {
+      mimeType: "application/pdf",
+      dialogTitle: `${fileName} 저장/공유`,
       UTI: "com.adobe.pdf",
     });
   }
