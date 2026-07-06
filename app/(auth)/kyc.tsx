@@ -11,14 +11,16 @@ import { Card } from "@/components/Card";
 import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
 import { requestKyc, verifyKyc } from "@/api/kyc";
+import { useAuth } from "@/context/AuthContext";
 
-type Step = "phone" | "code" | "done";
+type Step = "email" | "code" | "done";
 
 export default function Kyc() {
   const { spacing, colors } = useTheme();
   const router = useRouter();
-  const [step, setStep] = useState<Step>("phone");
-  const [phone, setPhone] = useState("");
+  const { user } = useAuth();
+  const email = user?.email ?? "";
+  const [step, setStep] = useState<Step>("email");
   const [code, setCode] = useState("");
   const [requestId, setRequestId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -28,7 +30,7 @@ export default function Kyc() {
     setError(null);
     setLoading(true);
     try {
-      const res = await requestKyc("SMS", { phone });
+      const res = await requestKyc("EMAIL");
       setRequestId(res.requestId);
       setStep("code");
     } catch (e) {
@@ -55,11 +57,11 @@ export default function Kyc() {
 
   return (
     <>
-      <Header title="본인확인" />
+      <Header title="이메일 인증" />
       <Screen>
         {/* 진행 표시 */}
         <View style={{ flexDirection: "row", gap: 6, marginBottom: spacing.x6 }}>
-          {["phone", "code", "done"].map((s, i) => (
+          {["email", "code", "done"].map((s, i) => (
             <View
               key={s}
               style={{
@@ -67,29 +69,31 @@ export default function Kyc() {
                 height: 4,
                 borderRadius: 2,
                 backgroundColor:
-                  ["phone", "code", "done"].indexOf(step) >= i ? colors.brand : colors.line,
+                  ["email", "code", "done"].indexOf(step) >= i ? colors.brand : colors.line,
               }}
             />
           ))}
         </View>
 
-        {step === "phone" && (
+        {step === "email" && (
           <>
-            <Text variant="h1">휴대폰 본인확인</Text>
+            <Text variant="h1">이메일 인증</Text>
             <Text variant="body" color="muted" style={{ marginTop: 4, marginBottom: spacing.x6 }}>
-              안전한 진료와 처방을 위해 본인확인이 필요해요.
+              안전한 진료와 처방을 위해 이메일 인증이 필요해요.
             </Text>
             <Input
-              label="휴대폰 번호"
-              icon="call-outline"
-              placeholder="010-1234-5678"
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={setPhone}
+              label="이메일"
+              icon="mail-outline"
+              value={email}
+              editable={false}
+              onChangeText={() => {}}
               error={error ?? undefined}
             />
+            <Text variant="caption" color="subtle" style={{ marginTop: 8 }}>
+              가입하신 이메일 주소로 인증번호를 보내드려요.
+            </Text>
             <Button
-              label={loading ? "요청 중…" : "인증번호 받기"}
+              label={loading ? "발송 중…" : "인증번호 받기"}
               full
               onPress={sendCode}
               style={{ marginTop: spacing.x6 }}
@@ -101,7 +105,7 @@ export default function Kyc() {
           <>
             <Text variant="h1">인증번호 입력</Text>
             <Text variant="body" color="muted" style={{ marginTop: 4, marginBottom: spacing.x6 }}>
-              {phone || "휴대폰"} 으로 전송된 6자리 숫자를 입력하세요.
+              {email || "이메일"} 로 전송된 6자리 숫자를 입력하세요.
             </Text>
             <Input
               label="인증번호"
@@ -133,15 +137,15 @@ export default function Kyc() {
               <Ionicons name="checkmark-circle" size={64} color={colors.brand} />
             </View>
             <Text variant="h1" center style={{ marginTop: spacing.x5 }}>
-              본인확인 완료
+              이메일 인증 완료
             </Text>
             <Text variant="body" color="muted" center style={{ marginTop: 8, maxWidth: 300 }}>
               이제 MediView의 모든 기능을 이용할 수 있어요.
             </Text>
             <Card style={{ width: "100%", marginTop: spacing.x6, gap: 10 }}>
               {[
-                "연계정보(CI) 암호화 저장",
-                "진료·처방 시 본인 인증",
+                "이메일 소유 확인 완료",
+                "진료·처방 알림 수신",
                 "타인 도용 방지",
               ].map((t) => (
                 <View key={t} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>

@@ -26,7 +26,7 @@ export async function verifyKyc(requestId: string, verificationCode: string) {
     return delay<KycResponse>({
       id: 1,
       requestId,
-      method: "SMS",
+      method: "EMAIL",
       status: "VERIFIED",
       verifiedAt: new Date().toISOString(),
     });
