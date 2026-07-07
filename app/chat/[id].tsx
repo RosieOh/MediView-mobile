@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   View,
   TextInput,
@@ -16,6 +16,14 @@ import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
 import { doctors } from "@/lib/mock";
+import { DEMO_MODE } from "@/lib/config";
+import { useAuth } from "@/context/AuthContext";
+import {
+  getOrCreateSession,
+  getChatHistory,
+  connectChat,
+  type ChatSocket,
+} from "@/api/chat";
 
 type Msg = { id: string; me: boolean; text: string };
 
@@ -26,19 +34,68 @@ export default function Chat() {
   const { colors, radius, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const scroll = useRef<ScrollView>(null);
+  const { user } = useAuth();
   const doctor = doctors.find((d) => d.id === id) ?? doctors[0];
 
-  const [messages, setMessages] = useState<Msg[]>([
-    { id: "m0", me: false, text: `안녕하세요, ${doctor.name}입니다. 어떤 점이 불편하신가요?` },
-  ]);
+  const [messages, setMessages] = useState<Msg[]>(
+    DEMO_MODE
+      ? [{ id: "m0", me: false, text: `안녕하세요, ${doctor.name}입니다. 어떤 점이 불편하신가요?` }]
+      : [],
+  );
   const [input, setInput] = useState("");
+  const socketRef = useRef<ChatSocket | null>(null);
+
+  // 실서버 모드: 세션 확보 → 이력 로드 → WebSocket 연결.
+  useEffect(() => {
+    if (DEMO_MODE) return;
+    let alive = true;
+    (async () => {
+      try {
+        const session = await getOrCreateSession(String(id));
+        if (!alive) return;
+        const history = await getChatHistory(session.id);
+        if (!alive) return;
+        setMessages(
+          history.map((h) => ({
+            id: `h${h.id}`,
+            me: h.senderId === user?.id,
+            text: h.content,
+          })),
+        );
+        const sock = await connectChat(session.id, (m) => {
+          setMessages((prev) => [
+            ...prev,
+            { id: `s${seq++}`, me: m.senderId === user?.id, text: m.content },
+          ]);
+          setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 30);
+        });
+        if (alive) socketRef.current = sock;
+        else sock?.close();
+      } catch {
+        // 연결 실패 시 조용히 무시
+      }
+    })();
+    return () => {
+      alive = false;
+      socketRef.current?.close();
+      socketRef.current = null;
+    };
+  }, [id, user?.id]);
 
   const send = () => {
     const text = input.trim();
     if (!text) return;
     setInput("");
+
+    if (!DEMO_MODE) {
+      // 서버가 발신자 포함 브로드캐스트하므로 로컬 에코는 하지 않는다(중복 방지).
+      socketRef.current?.send(text);
+      setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 50);
+      return;
+    }
+
+    // 데모: 로컬 에코 + 자동 응답
     setMessages((prev) => [...prev, { id: `u${seq++}`, me: true, text }]);
-    // 데모 자동 응답 (실제로는 /ws/chat/{sessionId} 로 송수신)
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
