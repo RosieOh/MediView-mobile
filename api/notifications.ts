@@ -25,6 +25,19 @@ function toView(dto: NotificationDto): Notification {
   };
 }
 
+/** Expo 푸시 토큰을 서버에 등록한다. */
+export async function registerPushToken(token: string, platform: string): Promise<void> {
+  if (DEMO_MODE) return;
+  try {
+    await api<void>("/api/notifications/push-token", {
+      method: "POST",
+      body: { token, platform },
+    });
+  } catch {
+    // 등록 실패는 조용히 무시(푸시 없이도 앱은 동작)
+  }
+}
+
 export async function listNotifications(): Promise<Notification[]> {
   if (DEMO_MODE) return mockNotifications;
   try {

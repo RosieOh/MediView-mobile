@@ -10,6 +10,7 @@ import { getAccessToken } from "@/lib/api";
 import { getItem, KEYS } from "@/lib/storage";
 import * as authApi from "@/api/auth";
 import { updateMe, type ProfileUpdate } from "@/api/users";
+import { registerForPush } from "@/lib/push";
 import type { SignupPayload, UserProfile } from "@/lib/types";
 
 type Status = "loading" | "authenticated" | "unauthenticated";
@@ -43,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (alive) {
           setUser(profile);
           setStatus("authenticated");
+          registerForPush();
         }
       } catch {
         if (alive) setStatus("unauthenticated");
@@ -61,11 +63,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const profile = await authApi.login(email, password);
         setUser(profile);
         setStatus("authenticated");
+        registerForPush();
       },
       signup: async (payload) => {
         const profile = await authApi.signup(payload);
         setUser(profile);
         setStatus("authenticated");
+        registerForPush();
       },
       logout: async () => {
         const refresh = await getItem(KEYS.refreshToken);
