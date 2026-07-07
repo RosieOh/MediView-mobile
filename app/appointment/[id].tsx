@@ -11,11 +11,14 @@ import { Button } from "@/components/Button";
 import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
 import { appointments, statusLabel } from "@/lib/mock";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AppointmentDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, spacing } = useTheme();
   const router = useRouter();
+  const { user } = useAuth();
+  const isDoctor = user?.role === "DOCTOR";
   const appt = appointments.find((a) => a.id === id) ?? appointments[0];
   const active = appt.status !== "COMPLETED";
 
@@ -69,12 +72,28 @@ export default function AppointmentDetail() {
                 onPress={() => Alert.alert("일정 변경", "변경 가능한 시간을 안내해 드릴게요.")}
               />
             </View>
+            {isDoctor ? (
+              <Button
+                label="문서 발급 (처방전·진료내역서)"
+                variant="secondary"
+                full
+                onPress={() => router.push(`/prescribe/${appt.id}`)}
+              />
+            ) : null}
             <Button label="예약 취소" variant="ghost" full onPress={cancel} />
           </View>
         ) : (
           <View style={{ marginTop: spacing.x6, gap: spacing.x2 }}>
+            {isDoctor ? (
+              <Button
+                label="문서 발급 (처방전·진료내역서)"
+                full
+                onPress={() => router.push(`/prescribe/${appt.id}`)}
+              />
+            ) : null}
             <Button
               label="처방전 · 서류 보기"
+              variant={isDoctor ? "secondary" : "primary"}
               full
               onPress={() => router.push("/documents")}
             />

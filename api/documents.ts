@@ -60,3 +60,48 @@ export async function getDocument(id: string): Promise<MedDocument | null> {
     return mockDocs.find((d) => d.id === id) ?? null;
   }
 }
+
+/** 처방전 본문 구조(백엔드 서식 JSON). */
+export type PrescriptionContent = {
+  diagnosis?: string;
+  drugs: {
+    name: string;
+    dose?: string;
+    freqPerDay?: number;
+    days?: number;
+    usage?: string;
+  }[];
+  dispenseDays?: number;
+  notes?: string;
+};
+
+/** 진료내역서 본문 구조(백엔드 서식 JSON). */
+export type MedicalRecordContent = {
+  diagnosis?: string;
+  visitDate?: string;
+  treatment?: string;
+  notes?: string;
+};
+
+export type IssueDocType = "PRESCRIPTION" | "MEDICAL_RECORD";
+
+/**
+ * 의료진이 문서를 발급한다: DRAFT 생성(POST) → 승인(approve)으로 ISSUED 전환.
+ * content 는 서식 JSON 을 문자열로 저장한다.
+ */
+export async function issueDocument(
+  appointmentId: string | number,
+  type: IssueDocType,
+  content: PrescriptionContent | MedicalRecordContent,
+): Promise<{ id: number }> {
+  if (DEMO_MODE) {
+    await new Promise((r) => setTimeout(r, 500));
+    return { id: 1 };
+  }
+  const created = await api<{ id: number }>("/api/documents", {
+    method: "POST",
+    body: { appointmentId: Number(appointmentId), type, content: JSON.stringify(content) },
+  });
+  await api(`/api/documents/${created.id}/approve`, { method: "POST" });
+  return { id: created.id };
+}
