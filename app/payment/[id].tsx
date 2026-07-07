@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Pressable, StyleSheet } from "react-native";
+import { View, Pressable, Alert, StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,6 +10,8 @@ import { Button } from "@/components/Button";
 import { useTheme } from "@/theme/theme";
 import { palette } from "@/theme/tokens";
 import { payForAppointment } from "@/api/payments";
+import { DEMO_MODE } from "@/lib/config";
+import { downloadReceiptPdf } from "@/lib/pdf";
 
 const AMOUNT = 12000;
 
@@ -27,6 +29,7 @@ export default function Payment() {
   const [method, setMethod] = useState<string>("card");
   const [paying, setPaying] = useState(false);
   const [done, setDone] = useState(false);
+  const [paymentId, setPaymentId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const pay = async () => {
@@ -35,12 +38,27 @@ export default function Payment() {
     try {
       // prepare → PG 결제 → confirm(서버 검증). 데모 모드면 시뮬레이션.
       const res = await payForAppointment(Number(id) || 1, AMOUNT, method);
-      if (res.status === "PAID") setDone(true);
-      else setError("결제가 완료되지 않았습니다. 다시 시도해 주세요.");
+      if (res.status === "PAID") {
+        setPaymentId(res.id);
+        setDone(true);
+      } else setError("결제가 완료되지 않았습니다. 다시 시도해 주세요.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "결제에 실패했습니다.");
     } finally {
       setPaying(false);
+    }
+  };
+
+  const getReceipt = async () => {
+    if (DEMO_MODE) {
+      Alert.alert("영수증", "데모 모드에서는 실제 결제 영수증이 발급되지 않습니다.");
+      return;
+    }
+    try {
+      const pid = paymentId ?? (Number(id) || 1);
+      await downloadReceiptPdf(pid, `MediView_receipt_${pid}.pdf`);
+    } catch (e) {
+      Alert.alert("영수증 발급 실패", e instanceof Error ? e.message : "잠시 후 다시 시도해 주세요.");
     }
   };
 
@@ -66,6 +84,13 @@ export default function Payment() {
               full
               onPress={() => router.replace("/documents")}
               style={{ marginTop: spacing.x8 }}
+            />
+            <Button
+              label="영수증 다운로드"
+              variant="secondary"
+              full
+              onPress={getReceipt}
+              style={{ marginTop: spacing.x2 }}
             />
             <Button
               label="닫기"

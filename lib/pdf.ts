@@ -68,15 +68,12 @@ export async function saveDocumentPdf(doc: MedDocument): Promise<void> {
 }
 
 /**
- * 백엔드가 서식(Thymeleaf) 기반으로 발급한 정식 PDF 를 내려받아 저장/공유한다.
- * 처방전·진료내역서는 서버 발급본이 정본이므로 이 경로를 사용한다.
+ * 백엔드가 발급한 PDF(경로 지정)를 인증 토큰으로 내려받아 저장/공유한다.
+ * (웹은 blob 새 탭, 네이티브는 파일 저장 후 공유시트)
  */
-export async function downloadServerDocumentPdf(
-  documentId: string,
-  fileName: string,
-): Promise<void> {
+export async function downloadServerPdf(path: string, fileName: string): Promise<void> {
   const token = await getAccessToken();
-  const url = `${API_URL}/api/documents/${documentId}/pdf`;
+  const url = `${API_URL}${path}`;
   const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
   if (Platform.OS === "web") {
@@ -104,4 +101,17 @@ export async function downloadServerDocumentPdf(
       UTI: "com.adobe.pdf",
     });
   }
+}
+
+/**
+ * 백엔드가 서식(Thymeleaf) 기반으로 발급한 정식 문서 PDF 를 내려받아 저장/공유한다.
+ * 처방전·진료내역서는 서버 발급본이 정본이므로 이 경로를 사용한다.
+ */
+export function downloadServerDocumentPdf(documentId: string, fileName: string): Promise<void> {
+  return downloadServerPdf(`/api/documents/${documentId}/pdf`, fileName);
+}
+
+/** 결제 영수증 PDF 다운로드. */
+export function downloadReceiptPdf(paymentId: string | number, fileName: string): Promise<void> {
+  return downloadServerPdf(`/api/payments/${paymentId}/receipt`, fileName);
 }
