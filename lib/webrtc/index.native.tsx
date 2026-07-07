@@ -1,6 +1,7 @@
 import React from "react";
 import { Signaling } from "./signaling";
 import type { StartConsultOpts, ConsultHandle, RTCVideoProps } from "./types";
+import { STUN_URLS } from "@/lib/config";
 
 /**
  * 네이티브 실제 WebRTC 구현.
@@ -18,14 +19,18 @@ try {
 
 export const WEBRTC_AVAILABLE: boolean = !!(RN && RN.RTCPeerConnection);
 
-const ICE = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+// 백엔드 /api/webrtc/ice 실패 시 폴백용 STUN.
+const FALLBACK_ICE = [{ urls: STUN_URLS }];
 
 export function startConsult(opts: StartConsultOpts): ConsultHandle {
   if (!WEBRTC_AVAILABLE) {
     return { toggleMic: () => false, toggleCam: () => false, hangup: () => {} };
   }
 
-  const pc = new RN.RTCPeerConnection(ICE);
+  const pc = new RN.RTCPeerConnection({
+    iceServers:
+      opts.iceServers && opts.iceServers.length > 0 ? opts.iceServers : FALLBACK_ICE,
+  });
   let localStream: any = null;
   let signaling: Signaling | null = null;
   let closed = false;

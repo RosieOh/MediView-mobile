@@ -14,6 +14,7 @@ import {
   type ConsultStatus,
   type StreamLike,
 } from "@/lib/webrtc";
+import { fetchIceServers } from "@/lib/webrtc/ice";
 
 const statusLabel: Record<ConsultStatus, string> = {
   connecting: "연결 중…",
@@ -47,10 +48,12 @@ export function VideoConsult({
     let handle: ConsultHandle | null = null;
     (async () => {
       const ticket = await getWsTicket();
+      const iceServers = await fetchIceServers();
       handle = startConsult({
         roomId: sessionId,
         wsUrl: WS_URL,
         ticket,
+        iceServers,
         onLocalStream: setLocal,
         onRemoteStream: setRemote,
         onStatus: setStatus,
