@@ -29,9 +29,9 @@ export const WS_URL = API_URL.replace(/^http/, "ws");
  * WebRTC 폴백 STUN 서버. 백엔드 GET /api/webrtc/ice 호출이 실패하거나 데모 모드일 때 사용.
  * 콤마로 여러 개 지정 가능. EXPO_PUBLIC_STUN_URLS 로 덮어쓸 수 있다.
  */
-export const STUN_URLS = (
+export const STUN_URLS = String(
   process.env.EXPO_PUBLIC_STUN_URLS || "stun:stun.l.google.com:19302"
 )
   .split(",")
-  .map((s) => s.trim())
+  .map((s: string) => s.trim())
   .filter(Boolean);
