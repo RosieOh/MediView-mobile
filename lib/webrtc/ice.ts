@@ -11,7 +11,7 @@ function fallback(): IceServer[] {
 
 /**
  * 통화 시작 직전에 백엔드(GET /api/webrtc/ice)에서 STUN/TURN 서버 목록을 받아온다.
- * TURN 자격증명은 단기(기본 1시간) 발급되므로 매 통화마다 새로 호출한다.
+ * TURN 자격증명은 단기 발급되므로 매 통화마다 새로 호출한다.
  * 데모 모드/네트워크 실패 시 공용 STUN 으로 폴백해 화상 연결을 시도한다.
  */
 export async function fetchIceServers(): Promise<IceServer[]> {

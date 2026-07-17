@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { View, Pressable, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/Screen";
+import { SkeletonList } from "@/components/Skeleton";
 import { Text } from "@/components/Text";
 import { Card } from "@/components/Card";
 import { Badge, type Tone } from "@/components/Badge";
@@ -39,9 +40,10 @@ export default function Appointments() {
   if (items === null) {
     return (
       <Screen title="예약">
-        <View style={{ paddingVertical: 60, alignItems: "center" }}>
-          <ActivityIndicator color={colors.brand} />
-        </View>
+        <Text variant="h3" style={{ marginBottom: spacing.x3 }}>
+          예정된 진료
+        </Text>
+        <SkeletonList count={2} />
       </Screen>
     );
   }
@@ -78,7 +80,7 @@ export default function Appointments() {
                 <Button
                   label="진료실 입장"
                   style={{ flex: 1 }}
-                  onPress={() => router.push("/consult/1")}
+                  onPress={() => router.push(`/waiting/${a.id}`)}
                 />
                 <Button label="변경" variant="secondary" style={{ flex: 1 }} />
               </View>

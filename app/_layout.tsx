@@ -80,14 +80,18 @@ function RootNavigator() {
         <Stack.Screen name="(auth)" options={{ animation: "fade" }} />
         <Stack.Screen name="onboarding" options={{ animation: "fade" }} />
         <Stack.Screen name="doctor/[id]" />
+        <Stack.Screen name="eligibility/[id]" />
         <Stack.Screen name="booking/[id]" />
         <Stack.Screen name="intake/[id]" />
+        <Stack.Screen name="waiting/[id]" />
         <Stack.Screen name="consult/[id]" options={{ animation: "slide_from_bottom" }} />
         <Stack.Screen name="summary/[id]" />
+        <Stack.Screen name="review/[id]" />
         <Stack.Screen name="payment/[id]" options={{ presentation: "modal" }} />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="documents/index" />
         <Stack.Screen name="documents/[id]" />
+        <Stack.Screen name="pharmacy/[id]" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="support" />
         <Stack.Screen name="profile-edit" />

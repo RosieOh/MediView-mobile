@@ -57,7 +57,11 @@ export default function AppointmentDetail() {
 
         {active ? (
           <View style={{ marginTop: spacing.x6, gap: spacing.x2 }}>
-            <Button label="진료실 입장" full onPress={() => router.push("/consult/1")} />
+            <Button
+              label={isDoctor ? "진료 시작" : "진료실 입장"}
+              full
+              onPress={() => router.push(isDoctor ? "/consult/1" : `/waiting/${appt.id}`)}
+            />
             <View style={{ flexDirection: "row", gap: 8 }}>
               <Button
                 label="채팅 상담"
@@ -69,7 +73,8 @@ export default function AppointmentDetail() {
                 label="일정 변경"
                 variant="secondary"
                 style={{ flex: 1 }}
-                onPress={() => Alert.alert("일정 변경", "변경 가능한 시간을 안내해 드릴게요.")}
+                // 변경 = 담당의의 예약 가능 시간에서 새 슬롯 선택(예약 플로우 재사용)
+                onPress={() => router.push(`/doctor/${appt.id}?reschedule=1`)}
               />
             </View>
             {isDoctor ? (
@@ -97,9 +102,17 @@ export default function AppointmentDetail() {
               full
               onPress={() => router.push("/documents")}
             />
+            {!isDoctor ? (
+              <Button
+                label="진료 후기 남기기"
+                variant="secondary"
+                full
+                onPress={() => router.push(`/review/${appt.id}`)}
+              />
+            ) : null}
             <Button
               label="다시 예약"
-              variant="secondary"
+              variant="ghost"
               full
               onPress={() => router.push("/(tabs)/doctors")}
             />
