@@ -7,6 +7,8 @@ import { useTheme } from "@/theme/theme";
 import { Loading } from "@/components/Loading";
 import { ErrorScreen } from "@/components/ErrorScreen";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { ToastProvider } from "@/components/Toast";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -32,7 +34,10 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <RootNavigator />
+        <ToastProvider>
+          <RootNavigator />
+          <OfflineBanner />
+        </ToastProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );
@@ -89,6 +94,7 @@ function RootNavigator() {
         <Stack.Screen name="review/[id]" />
         <Stack.Screen name="payment/[id]" options={{ presentation: "modal" }} />
         <Stack.Screen name="notifications" />
+        <Stack.Screen name="history" />
         <Stack.Screen name="documents/index" />
         <Stack.Screen name="documents/[id]" />
         <Stack.Screen name="pharmacy/[id]" />
@@ -97,6 +103,7 @@ function RootNavigator() {
         <Stack.Screen name="profile-edit" />
         <Stack.Screen name="payment-methods" />
         <Stack.Screen name="appointment/[id]" />
+        <Stack.Screen name="reschedule/[id]" />
         <Stack.Screen name="prescribe/[id]" />
         <Stack.Screen name="chat/[id]" />
         <Stack.Screen name="legal/[type]" />
